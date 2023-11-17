@@ -1,0 +1,91 @@
+version: "3.3" # docker version
+
+services:
+  php-app:
+    image: php:7.4.9-apache
+    volumes:
+      - ../Stopify-PHP-App/.:/var/www/html
+      - ../Stopify-PHP-App/apache.conf:/etc/apache2/sites-available/000-default.conf
+    depends_on:
+      - db-php
+    ports:
+      - "8001:80"
+      - "443:443"
+    build: ../Stopify-PHP-App
+    networks:
+      - stopify
+
+  db-php:
+    image: postgres:latest
+    env_file:
+      - ../Stopify-PHP-App/.env.docker
+    volumes:
+      - ../Stopify-PHP-App/migrate/stopify.sql:/docker-entrypoint-initdb.d/dumpfile.sql
+    networks:
+      - stopify
+
+  react-app:
+    build: ../Stopify-React-App
+    volumes:
+      - "../Stopify-React-App:/app"
+      - "/app/node_modules"
+    ports:
+      - "9000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - stopify
+
+  db-node:
+    image: "postgres"
+    env_file:
+      - ./../Stopify-REST-Service/.env
+    networks:
+      - stopify
+
+  node-service:
+    build: ../Stopify-REST-Service
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../Stopify-REST-Service/.env
+    volumes:
+      - "../Stopify-REST-Service/.:/app"
+      - "/app/node_modules"
+    command: >
+      sh -c "npx prisma migrate dev &&
+            npx prisma generate dev &&
+            npm run dev"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - db-node
+    networks:
+      - stopify
+
+  soap-service:
+    build: ../Stopify-SOAP-Service/.
+    depends_on:
+      - db-soap
+    ports:
+      - "8003:8001"
+    env_file:
+      - ../Stopify-SOAP-Service/.env
+    networks:
+      - stopify
+  db-soap:
+    container_name: db-soap
+    image: mysql
+    restart: unless-stopped
+    volumes:
+      - ../Stopify-SOAP-Service/migrate/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    env_file:
+      - ../Stopify-SOAP-Service/.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=1010
+    networks:
+      - stopify
+
+networks:
+  stopify:
+    driver: bridge
