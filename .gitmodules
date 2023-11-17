@@ -1,0 +1,12 @@
+[submodule "Stopify-REST-Service"]
+	path = Stopify-REST-Service
+	url = https://github.com/egijago/Stopify-REST-Service.git
+[submodule "Stopify-SOAP-Service"]
+	path = Stopify-SOAP-Service
+	url = https://github.com/egijago/Stopify-SOAP-Service.git
+[submodule "Stopify-React-App"]
+	path = Stopify-React-App
+	url = https://github.com/egijago/Stopify-React-App.git
+[submodule "Stopify-PHP-App"]
+	path = Stopify-PHP-App
+	url = https://github.com/egijago/Stopify-PHP-App.git
